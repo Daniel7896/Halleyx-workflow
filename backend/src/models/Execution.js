@@ -23,6 +23,7 @@ const logEntrySchema = new mongoose.Schema({
 const executionSchema = new mongoose.Schema(
     {
         _id: { type: String, default: uuidv4 },
+        user_id: { type: String, ref: 'User', required: true, index: true },
         workflow_id: { type: String, ref: 'Workflow', required: true },
         workflow_version: { type: Number, required: true },
         status: {

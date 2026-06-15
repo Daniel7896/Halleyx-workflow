@@ -7,11 +7,12 @@ const {
     deleteWorkflow
 } = require('../controllers/workflowController');
 const { startExecution } = require('../controllers/executionController');
+const { checkWorkflowLimit, checkExecutionLimit } = require('../middleware/planLimits');
 
 const router = express.Router();
 
 router.route('/')
-    .post(createWorkflow)
+    .post(checkWorkflowLimit, createWorkflow)
     .get(getWorkflows);
 
 router.route('/:id')
@@ -20,6 +21,6 @@ router.route('/:id')
     .delete(deleteWorkflow);
 
 // Execute a workflow: POST /api/workflows/:id/execute
-router.post('/:id/execute', startExecution);
+router.post('/:id/execute', checkExecutionLimit, startExecution);
 
 module.exports = router;

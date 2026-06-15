@@ -1,7 +1,7 @@
 /**
- * HalleyX Custom Rule Engine
+ * FlowCraft Custom Rule Engine
  * 
- * WHY THIS IS IMPRESSIVE:
+
  * Standard applications often use the built-in Javascript `eval()` function to evaluate
  * dynamic condition strings like "amount > 100". However, `eval()` is a massive security risk
  * because it can execute malicious code (Code Injection).

@@ -1,20 +1,23 @@
 /**
  * Execution Controller
  * 
- * ARCHITECTURE OVERVIEW:
- * This controller handles the "Runtime" of the workflow. 
- * While the other controllers just save data (Design Time), this controller 
- * actually calls our custom Execution Engine to process the data and 
- * run the graph traversal logic (Run Time).
+ * Handles workflow execution runtime.
+ * Scoped to authenticated user for multi-tenancy.
  */
 const { executeWorkflow, cancelExecution, retryExecution } = require('../engine/executionEngine');
 const Execution = require('../models/Execution');
+const Workflow = require('../models/Workflow');
 
 exports.startExecution = async (req, res) => {
     try {
-        const { id } = req.params;   // :id from /api/workflows/:id/execute
+        const { id } = req.params;
+        // Verify workflow ownership
+        const workflow = await Workflow.findOne({ _id: id, user_id: req.user.id });
+        if (!workflow) {
+            return res.status(404).json({ success: false, message: 'Workflow not found' });
+        }
         const inputData = req.body;
-        const execution = await executeWorkflow(id, inputData, 'api');
+        const execution = await executeWorkflow(id, inputData, req.user.id);
         res.status(201).json({ success: true, data: execution });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
@@ -23,7 +26,7 @@ exports.startExecution = async (req, res) => {
 
 exports.getExecution = async (req, res) => {
     try {
-        const execution = await Execution.findById(req.params.id);
+        const execution = await Execution.findOne({ _id: req.params.id, user_id: req.user.id });
         if (!execution) {
             return res.status(404).json({ success: false, message: 'Execution not found' });
         }
@@ -35,7 +38,7 @@ exports.getExecution = async (req, res) => {
 
 exports.cancelExecution = async (req, res) => {
     try {
-        const execution = await Execution.findById(req.params.id);
+        const execution = await Execution.findOne({ _id: req.params.id, user_id: req.user.id });
         if (!execution) {
             return res.status(404).json({ success: false, message: 'Execution not found' });
         }
@@ -54,6 +57,11 @@ exports.cancelExecution = async (req, res) => {
 
 exports.retryExecution = async (req, res) => {
     try {
+        // Verify ownership
+        const existing = await Execution.findOne({ _id: req.params.id, user_id: req.user.id });
+        if (!existing) {
+            return res.status(404).json({ success: false, message: 'Execution not found' });
+        }
         const execution = await retryExecution(req.params.id);
         res.status(200).json({ success: true, data: execution });
     } catch (error) {

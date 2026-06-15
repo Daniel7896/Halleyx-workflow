@@ -5,11 +5,12 @@ const {
     updateStep,
     deleteStep
 } = require('../controllers/stepController');
+const { checkStepLimit } = require('../middleware/planLimits');
 
 const router = express.Router();
 
 router.route('/workflows/:workflow_id/steps')
-    .post(addStep)
+    .post(checkStepLimit, addStep)
     .get(getSteps);
 
 router.route('/steps/:id')

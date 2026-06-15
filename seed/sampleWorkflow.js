@@ -5,7 +5,7 @@
 require('dotenv').config({ path: `${__dirname}/../backend/.env` });
 const mongoose = require('mongoose');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/halleyx_workflow';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/flowcraft_db';
 
 // ─── Inline Schema Definitions (independent of backend models) ─────
 const { v4: uuidv4 } = require('uuid');

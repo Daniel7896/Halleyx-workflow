@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 
 const SchemaBuilder = ({ schema, onChange }) => {
     const [newKey, setNewKey] = useState('');
@@ -34,36 +34,36 @@ const SchemaBuilder = ({ schema, onChange }) => {
 
     return (
         <div className="space-y-4">
-            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+            <div className="border border-white/[0.08] rounded-xl overflow-hidden">
                 <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
+                    <thead className="bg-white/[0.03] border-b border-white/[0.06]">
                         <tr>
-                            <th className="px-4 py-2 font-medium">Field Name</th>
-                            <th className="px-4 py-2 font-medium">Type</th>
-                            <th className="px-4 py-2 font-medium">Required</th>
-                            <th className="px-4 py-2 font-medium">Allowed Values</th>
-                            <th className="px-4 py-2 font-medium text-right">Actions</th>
+                            <th className="px-4 py-3 font-semibold text-slate-500 uppercase text-xs tracking-wider">Field Name</th>
+                            <th className="px-4 py-3 font-semibold text-slate-500 uppercase text-xs tracking-wider">Type</th>
+                            <th className="px-4 py-3 font-semibold text-slate-500 uppercase text-xs tracking-wider">Required</th>
+                            <th className="px-4 py-3 font-semibold text-slate-500 uppercase text-xs tracking-wider">Allowed Values</th>
+                            <th className="px-4 py-3 font-semibold text-slate-500 uppercase text-xs tracking-wider text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-white/[0.04]">
                         {keys.map((key) => (
-                            <tr key={key} className="hover:bg-slate-50">
-                                <td className="px-4 py-2 font-mono text-slate-700">{key}</td>
-                                <td className="px-4 py-2">
-                                    <span className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded capitalize">{schema[key].type}</span>
+                            <tr key={key} className="hover:bg-white/[0.03] transition-colors">
+                                <td className="px-4 py-3 font-mono text-white font-medium">{key}</td>
+                                <td className="px-4 py-3">
+                                    <span className="bg-brand-primary/10 text-brand-primary text-xs px-2 py-0.5 rounded capitalize font-semibold">{schema[key].type}</span>
                                 </td>
-                                <td className="px-4 py-2">
+                                <td className="px-4 py-3">
                                     {schema[key].required ? (
-                                        <span className="text-green-600 font-medium">Yes</span>
+                                        <span className="text-green-400 font-medium">Yes</span>
                                     ) : (
-                                        <span className="text-slate-400">No</span>
+                                        <span className="text-slate-500">No</span>
                                     )}
                                 </td>
-                                <td className="px-4 py-2 text-slate-500">
+                                <td className="px-4 py-3 text-slate-400">
                                     {schema[key].allowed_values ? schema[key].allowed_values.join(', ') : '-'}
                                 </td>
-                                <td className="px-4 py-2 text-right">
-                                    <button onClick={() => handleDelete(key)} className="text-slate-400 hover:text-red-500 p-1">
+                                <td className="px-4 py-3 text-right">
+                                    <button onClick={() => handleDelete(key)} className="text-slate-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded transition">
                                         <Trash2 size={16} />
                                     </button>
                                 </td>
@@ -71,20 +71,20 @@ const SchemaBuilder = ({ schema, onChange }) => {
                         ))}
                         {keys.length === 0 && (
                             <tr>
-                                <td colSpan="5" className="px-4 py-6 text-center text-slate-400 italic">No schema fields defined</td>
+                                <td colSpan="5" className="px-4 py-8 text-center text-slate-500 italic">No schema fields defined</td>
                             </tr>
                         )}
                     </tbody>
                 </table>
             </div>
 
-            <div className="bg-slate-50 p-4 border border-slate-200 rounded-xl flex flex-wrap gap-4 items-end">
+            <div className="bg-white/[0.03] p-4 border border-white/[0.08] rounded-xl flex flex-wrap gap-4 items-end">
                 <div className="flex-1 min-w-[150px]">
                     <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Field Name</label>
                     <input
                         type="text"
                         value={newKey} onChange={e => setNewKey(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-transparent text-sm"
+                        className="input-dark text-sm"
                         placeholder="e.g. amount"
                     />
                 </div>
@@ -92,7 +92,7 @@ const SchemaBuilder = ({ schema, onChange }) => {
                     <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Type</label>
                     <select
                         value={newType} onChange={e => setNewType(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-secondary text-sm"
+                        className="input-dark text-sm"
                     >
                         <option value="string">String</option>
                         <option value="number">Number</option>
@@ -104,9 +104,9 @@ const SchemaBuilder = ({ schema, onChange }) => {
                         type="checkbox"
                         id="reqCheck"
                         checked={newReq} onChange={e => setNewReq(e.target.checked)}
-                        className="rounded border-slate-300 text-brand-secondary focus:ring-brand-secondary"
+                        className="rounded border-white/20 bg-white/5 text-brand-primary focus:ring-brand-primary"
                     />
-                    <label htmlFor="reqCheck" className="text-sm font-medium text-slate-700">Required</label>
+                    <label htmlFor="reqCheck" className="text-sm font-medium text-slate-300">Required</label>
                 </div>
                 <div className="flex-1 min-w-[200px]">
                     <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Allowed Values (csv)</label>
@@ -114,13 +114,13 @@ const SchemaBuilder = ({ schema, onChange }) => {
                         type="text"
                         value={newAllowed} onChange={e => setNewAllowed(e.target.value)}
                         disabled={newType !== 'string'}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-secondary disabled:bg-slate-100 disabled:text-slate-400 text-sm"
+                        className="input-dark text-sm disabled:opacity-30"
                         placeholder="High, Medium, Low"
                     />
                 </div>
                 <button
                     onClick={handleAdd}
-                    className="bg-brand-secondary text-white px-4 py-1.5 rounded-lg flex items-center space-x-1 hover:bg-violet-700 transition shadow-sm font-medium text-sm h-[34px]"
+                    className="btn-primary px-4 py-2.5 flex items-center space-x-1 text-sm h-[40px]"
                 >
                     <Plus size={16} /> <span>Add</span>
                 </button>

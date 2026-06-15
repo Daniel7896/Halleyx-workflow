@@ -1,19 +1,14 @@
 /**
  * Workflow Controller
  * 
- * ARCHITECTURE OVERVIEW:
- * In a modern REST API, a "Controller" acts as the traffic cop between the
- * network routes (URLs) and the Database. 
- * 
- * This file handles CRUD (Create, Read, Update, Delete) operations for Workflows.
- * All functions are marked `async` because database operations take time, 
- * and we want the server to handle other requests while waiting (non-blocking).
+ * Handles CRUD operations for Workflows.
+ * All queries are scoped to the authenticated user (multi-tenancy).
  */
 const Workflow = require('../models/Workflow');
 
 exports.createWorkflow = async (req, res) => {
     try {
-        const workflow = new Workflow(req.body);
+        const workflow = new Workflow({ ...req.body, user_id: req.user.id });
         await workflow.save();
         res.status(201).json({ success: true, data: workflow });
     } catch (error) {
@@ -23,7 +18,7 @@ exports.createWorkflow = async (req, res) => {
 
 exports.getWorkflows = async (req, res) => {
     try {
-        const workflows = await Workflow.find().sort({ created_at: -1 });
+        const workflows = await Workflow.find({ user_id: req.user.id }).sort({ created_at: -1 });
         res.status(200).json({ success: true, data: workflows });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -32,7 +27,7 @@ exports.getWorkflows = async (req, res) => {
 
 exports.getWorkflow = async (req, res) => {
     try {
-        const workflow = await Workflow.findById(req.params.id);
+        const workflow = await Workflow.findOne({ _id: req.params.id, user_id: req.user.id });
         if (!workflow) {
             return res.status(404).json({ success: false, message: 'Workflow not found' });
         }
@@ -44,15 +39,14 @@ exports.getWorkflow = async (req, res) => {
 
 exports.updateWorkflow = async (req, res) => {
     try {
-        const workflow = await Workflow.findById(req.params.id);
+        const workflow = await Workflow.findOne({ _id: req.params.id, user_id: req.user.id });
         if (!workflow) {
             return res.status(404).json({ success: false, message: 'Workflow not found' });
         }
 
-        // FIX 3.2: Always increment version on every PUT
         const updates = {
             ...req.body,
-            version: workflow.version + 1  // explicit increment
+            version: workflow.version + 1
         };
 
         const updatedWorkflow = await Workflow.findByIdAndUpdate(
@@ -69,7 +63,7 @@ exports.updateWorkflow = async (req, res) => {
 
 exports.deleteWorkflow = async (req, res) => {
     try {
-        const workflow = await Workflow.findByIdAndDelete(req.params.id);
+        const workflow = await Workflow.findOneAndDelete({ _id: req.params.id, user_id: req.user.id });
         if (!workflow) {
             return res.status(404).json({ success: false, message: 'Workflow not found' });
         }

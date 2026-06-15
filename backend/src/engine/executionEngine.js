@@ -5,7 +5,7 @@ const Execution = require('../models/Execution');
 const { evaluateRules } = require('./ruleEngine');
 
 /**
- * HalleyX Core Execution Engine
+ * FlowCraft Core Execution Engine
  * 
  * ARCHITECTURE OVERVIEW:
  * We model workflows as a mathematical "Directed Graph" where:
@@ -113,6 +113,7 @@ const executeWorkflow = async (workflowId, inputData, triggeredBy = 'system') =>
     // FIX 4: started_at set explicitly at launch
     const execution = new Execution({
         workflow_id: workflow._id,
+        user_id: triggeredBy,
         workflow_version: workflow.version,
         status: 'in_progress',
         data: inputData,
