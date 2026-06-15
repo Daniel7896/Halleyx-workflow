@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Loader2, LogIn, Zap } from 'lucide-react';
@@ -8,7 +8,7 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const { login, googleLogin } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -24,6 +24,47 @@ const LoginPage = () => {
             setLoading(false);
         }
     };
+
+    const handleGoogleCredentialResponse = async (response) => {
+        setError('');
+        setLoading(true);
+        try {
+            await googleLogin(response.credential);
+            navigate('/dashboard');
+        } catch (err) {
+            setError(err.message || 'Google Sign-in failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const initializeGoogleBtn = () => {
+            if (window.google) {
+                const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'dummy-client-id';
+                window.google.accounts.id.initialize({
+                    client_id: clientId,
+                    callback: handleGoogleCredentialResponse
+                });
+                window.google.accounts.id.renderButton(
+                    document.getElementById("google-signin-btn"),
+                    { theme: "dark", size: "large", width: "100%", shape: "rectangular" }
+                );
+            }
+        };
+
+        if (window.google) {
+            initializeGoogleBtn();
+        } else {
+            const timer = setInterval(() => {
+                if (window.google) {
+                    initializeGoogleBtn();
+                    clearInterval(timer);
+                }
+            }, 100);
+            return () => clearInterval(timer);
+        }
+    }, []);
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4 py-12">
@@ -87,6 +128,19 @@ const LoginPage = () => {
                             <span>{loading ? 'Signing in...' : 'Sign In'}</span>
                         </button>
                     </form>
+
+                    <div className="relative flex items-center justify-center my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-slate-700/50"></div>
+                        </div>
+                        <span className="relative px-3 text-xs uppercase bg-[#0d0f17] text-slate-400 font-semibold tracking-wider">
+                            Or continue with
+                        </span>
+                    </div>
+
+                    <div className="flex justify-center w-full min-h-[44px]">
+                        <div id="google-signin-btn" className="w-full"></div>
+                    </div>
 
                     <div className="mt-6 text-center text-sm text-slate-400">
                         Don&apos;t have an account?{' '}
