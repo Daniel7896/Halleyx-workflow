@@ -48,8 +48,15 @@ const validateInputData = (schema, data) => {
  */
 async function runEngineLoop(execution, startStepId, inputData) {
     let currentStepId = startStepId;
+    let iterations = 0;
+    const MAX_ITERATIONS = 100;
 
     while (currentStepId) {
+        iterations++;
+        if (iterations > MAX_ITERATIONS) {
+            throw new Error(`Execution halted: Maximum step limit (${MAX_ITERATIONS}) reached. Possible infinite loop detected.`);
+        }
+
         const step = await Step.findById(currentStepId);
         if (!step) throw new Error(`Step "${currentStepId}" not found`);
 
