@@ -1,5 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Workflow = require('../models/Workflow');
+const Step = require('../models/Step');
+const Rule = require('../models/Rule');
+const { v4: uuidv4 } = require('uuid');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'flowcraft_fallback_secret';
 const JWT_EXPIRES = '7d';
@@ -27,6 +31,71 @@ exports.register = async (req, res) => {
 
         const user = new User({ name, email: email.toLowerCase(), password });
         await user.save();
+
+        // Seed a default workflow for onboarding the new user
+        try {
+            const workflowId = uuidv4();
+            const step1Id = uuidv4();
+            const step2Id = uuidv4();
+            const step3Id = uuidv4();
+
+            const defaultWorkflow = new Workflow({
+                _id: workflowId,
+                user_id: user._id,
+                name: 'E-commerce Order Automation',
+                version: 1,
+                is_active: true,
+                input_schema: { amount: 'number', items: 'number' },
+                start_step_id: step1Id
+            });
+            await defaultWorkflow.save();
+
+            const step1 = new Step({
+                _id: step1Id,
+                workflow_id: workflowId,
+                name: 'Check Order Amount',
+                step_type: 'task',
+                order: 1,
+                metadata: { description: 'Routes orders by size (Threshold: $500)' }
+            });
+            const step2 = new Step({
+                _id: step2Id,
+                workflow_id: workflowId,
+                name: 'Notify VIP Team (Slack)',
+                step_type: 'notification',
+                order: 2,
+                metadata: { channel: '#vip-orders', message: 'Alert: VIP order placed!' }
+            });
+            const step3 = new Step({
+                _id: step3Id,
+                workflow_id: workflowId,
+                name: 'Send Invoice Email',
+                step_type: 'notification',
+                order: 3,
+                metadata: { template: 'order_receipt' }
+            });
+
+            await Promise.all([step1.save(), step2.save(), step3.save()]);
+
+            const rule1 = new Rule({
+                _id: uuidv4(),
+                step_id: step1Id,
+                condition: 'amount > 500',
+                next_step_id: step2Id,
+                priority: 1
+            });
+            const rule2 = new Rule({
+                _id: uuidv4(),
+                step_id: step1Id,
+                condition: 'amount <= 500',
+                next_step_id: step3Id,
+                priority: 2
+            });
+
+            await Promise.all([rule1.save(), rule2.save()]);
+        } catch (seedError) {
+            console.error('Error seeding default workflow for user:', seedError);
+        }
 
         const token = generateToken(user._id);
 
