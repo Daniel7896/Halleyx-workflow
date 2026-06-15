@@ -49,6 +49,36 @@ exports.getDashboardStats = async (req, res) => {
             workflow_name: workflowMap[e.workflow_id] || 'Deleted Workflow'
         }));
 
+        // Get 7-day history trend
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const historyExecutions = await Execution.find({
+            user_id: userId,
+            created_at: { $gte: sevenDaysAgo }
+        }).select('created_at').lean();
+
+        const dailyCounts = {};
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            dailyCounts[dateStr] = 0;
+        }
+
+        historyExecutions.forEach(e => {
+            if (e.created_at) {
+                const dateStr = new Date(e.created_at).toISOString().split('T')[0];
+                if (dailyCounts[dateStr] !== undefined) {
+                    dailyCounts[dateStr]++;
+                }
+            }
+        });
+
+        const executionTrend = Object.keys(dailyCounts).map(date => ({
+            date,
+            count: dailyCounts[date]
+        }));
+
         res.status(200).json({
             success: true,
             data: {
@@ -60,6 +90,7 @@ exports.getDashboardStats = async (req, res) => {
                     failedExecutions,
                     successRate,
                     monthlyExecutions: user?.monthlyExecutionCount || 0,
+                    executionTrend
                 },
                 plan: {
                     name: user?.plan || 'free',

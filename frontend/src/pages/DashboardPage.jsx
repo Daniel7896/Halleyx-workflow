@@ -40,9 +40,25 @@ const DashboardPage = () => {
     const plan = data?.plan || { name: 'free', limits: {} };
     const recent = data?.recentExecutions || [];
 
-    // Mock Chart Data for beautiful SVG trendline
-    const chartPoints = "10,90 50,70 90,85 130,50 170,60 210,35 250,45 290,15 330,30 370,10 410,25 450,5";
-    const chartArea = "10,90 50,70 90,85 130,50 170,60 210,35 250,45 290,15 330,30 370,10 410,25 450,5 450,100 10,100";
+    // Generate dynamic chart points based on actual execution history
+    const trend = stats.executionTrend || [];
+    const maxCount = Math.max(...trend.map(t => t.count), 5);
+    
+    const pointsArray = trend.map((t, idx) => {
+        // Space points evenly across 460px width
+        const x = 10 + idx * 73;
+        // Map count to height range (10 to 90)
+        const y = 90 - (t.count / maxCount) * 80;
+        return { x, y, ...t };
+    });
+
+    const chartPoints = pointsArray.length > 0 
+        ? pointsArray.map(p => `${p.x},${p.y}`).join(' ')
+        : "10,90 450,90";
+        
+    const chartArea = pointsArray.length > 0
+        ? `10,100 ` + pointsArray.map(p => `${p.x},${p.y}`).join(' ') + ` 450,100`
+        : "10,100 450,100";
 
     return (
         <div className="w-full max-w-[1600px] mx-auto py-8 px-6 lg:px-10 space-y-8 animate-fade-in-up">
@@ -101,7 +117,7 @@ const DashboardPage = () => {
                         <div className="flex items-center justify-between mb-6">
                             <div>
                                 <h2 className="font-extrabold text-white text-lg">Execution Analytics</h2>
-                                <p className="text-xs text-slate-400">Total volume over the last 12 operational hours</p>
+                                <p className="text-xs text-slate-400">Total volume over the last 7 operational days</p>
                             </div>
                             <span className="text-xs font-bold bg-green-500/10 text-green-400 px-3 py-1 rounded-full border border-green-500/20 uppercase tracking-wide">Live</span>
                         </div>
@@ -130,11 +146,18 @@ const DashboardPage = () => {
                         
                         {/* X Axis labels */}
                         <div className="flex justify-between text-[10px] font-mono text-slate-500 mt-3 px-1">
-                            <span>12 hrs ago</span>
-                            <span>9 hrs ago</span>
-                            <span>6 hrs ago</span>
-                            <span>3 hrs ago</span>
-                            <span>Just now</span>
+                            {trend.map((t, idx) => {
+                                const formatted = new Date(t.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                                return (
+                                    <span key={idx} className="w-[60px] text-center">{formatted}</span>
+                                );
+                            })}
+                            {trend.length === 0 && (
+                                <>
+                                    <span>7 days ago</span>
+                                    <span>Today</span>
+                                </>
+                            )}
                         </div>
                     </div>
 
